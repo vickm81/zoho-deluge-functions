@@ -1,0 +1,64 @@
+// create commission records in crm and invoices in books when a deal reaches any won stage
+
+void automation.Commisions_and_Invoice_Creation(Int deal_id)
+{
+// getting data for commission record
+dealRecord = zoho.crm.getRecordById("Deals",deal_id);
+deal_name = dealRecord.get("Deal_Name");
+deal_amount = dealRecord.get("Amount");
+deal_owner = dealRecord.get("Owner");
+fp_advisor = dealRecord.get("Financial_Planning_Advisor");
+// assigning commission rate based on deal amount
+if(deal_amount > 20000)
+{
+	commissionRate = 0.075;
+}
+else
+{
+	commissionRate = 0.05;
+}
+// fetching users to receive commission
+commission_owners = {deal_owner,fp_advisor};
+info commission_owners;
+// creating commission records
+for each  owner in commission_owners
+{
+	commissionAmount = deal_amount * commissionRate;
+	commissionMap = Map();
+	commissionMap.put("Commission_Amount",commissionAmount);
+	commissionMap.put("Related_Deal",deal_id);
+	commissionMap.put("Owner",owner.get("id"));
+	commissionMap.put("Name",deal_name + " Commission for " + owner.get("name"));
+	info commissionMap;
+	create_commission = zoho.crm.createRecord("Commissions",commissionMap);
+	info create_commission;
+}
+// searching for the customer record in books
+orgId = 881204628;
+account_name = dealRecord.get("Account_Name").get("name");
+info account_name;
+searchParam = {"contact_name":account_name};
+customer_record = zoho.books.getRecords("Contacts",orgId,searchParam,"books").get("contacts");
+info customer_record;
+// create customer if they dont exist and get customer id
+if(!customer_record.isEmpty())
+{
+	custID = customer_record.get("0").get("contact_id");
+	info custID;
+}
+else
+{
+	newCust = Map();
+	newCust.put("contact_name",account_name);
+	createCust = zoho.books.createRecord("Contacts",orgId,newCust,"books");
+	custID = createCust.get("contact").get("contact_id");
+}
+// build invoice map and create record
+today = zoho.currentdate;
+invoice = Map();
+invoice.put("customer_id",custID);
+invoice.put("date",today);
+invoice.put("line_items",{{"item_id":6109720000000135001,"quantity":1,"rate":deal_amount}});
+createInvoice = zoho.books.createRecord("invoices",orgId,invoice,"books");
+info createInvoice;
+}

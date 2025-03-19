@@ -1,0 +1,24 @@
+void update_last_payment( map customer_payment, map organization, map user) {
+
+
+// update the last payment date custom field each time a customer payment is created
+
+// extract payment id from customer payment map
+payment_id = customer_payment.get("payment_id");
+orgID = organization.get("organization_id");
+payment_record = zoho.books.getRecordsByID("CustomerPayments",orgID,payment_id,"books").get("payment");
+info payment_record;
+info "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+​
+//get customer id from payment record
+custID = payment_record.get("customer_id");
+date = payment_record.get("date");
+info "Customer id: " + custID;
+info "last payment date: " + date;
+
+// update customer info with last payment date
+customerMap = Map();
+customerMap.put("custom_fields",{{"label":"Last Payment Date","value":date}});
+updateCustomer = zoho.books.updateRecord("Contacts",orgID,custID,customerMap,"books");
+info updateCustomer;
+}
