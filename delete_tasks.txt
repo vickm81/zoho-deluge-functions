@@ -1,0 +1,18 @@
+void automation.delete_related_tasks(Int deal_id)
+{
+//7007624000000608617
+related_tasks = zoho.crm.getRelatedRecords("Tasks","Deals",deal_id);
+info related_tasks;
+tasks = related_tasks.size();
+info tasks;
+for each  task in related_tasks
+{
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v8/Tasks/" + task.get("id")
+		type :DELETE
+		connection:"zohocrm"
+	];
+	info response;
+}
+}
