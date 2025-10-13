@@ -1,40 +1,29 @@
-// requires request type picklist in tickets module and request types multiselect in accounts module (custom fields)
-
-orgID = 882612169;
-ticket = zoho.desk.getRecordById(orgID,"tickets",ticket_id);
-// info ticket;
-request_type = ticket.get("cf").get("cf_request_type");
-info request_type + "xxxxxxxxxxxxxxxxxxxxxxx";
-accountID = ticket.get("accountId");
-info accountID + "xxxxxxxxxxxxxxxxxxxxxxx";
-account = zoho.desk.getRecordById(orgID,"accounts",accountID);
-info account + "xxxxxxxxxxxxxx";
-if(!accountID.isNull() && request_type!=""){
-	types = list();
-	
-	//Get present request types
-	if(!account.get("cf").get("cf_request_types").isNull())
+//1190520000000376370
+org_id = 902080550;
+ticket_info = zoho.desk.getRecordById(org_id,"Tickets",ticked_id);
+//info ticket_info;
+// getting request type
+request_type = ticket_info.get("cf").get("cf_request_type");
+info request_type;
+//fetching account info
+account_id = ticket_info.get("accountId");
+if(account_id != null && request_type != null)
+{
+	account_info = zoho.desk.getRecordById(org_id,"accounts",account_id);
+	acc_requests = account_info.get("cf").get("cf_request_types");
+	acc_list = acc_requests.toList(",");
+	info acc_list + "\n";
+	if(acc_requests.contains(request_type))
 	{
-		types.addAll(account.get("cf").get("cf_request_types").toList(","));
+		info "Request already present";
+	}else{
+		acc_list.add(request_type);
+		info acc_list;
+		info "request added";
+		list  = acc_list.toString().replaceAll(",", ";");
+		update_map = {"cf":{"cf_request_types":list}};
+		update = zoho.desk.update(org_id, "accounts", account_id, update_map,"zohodesk");
+		info update;
+		
 	}
-	
-	// Add the current request type if not present
-	if(!types.contains(request_type))
-	{
-		types.add(request_type);
-	}
-	types = types.toString().replaceAll(",",";");
-	info types;
-     
-	//create update map and update request types for the account
-	updateMap = Map();
-	updateMap.put("cf_request_types",types);
-	updateMap.put("cf_sla", "24 Hour");
-	custUpdate = Map();
-	custUpdate.put("cf",updateMap);
-	update = zoho.desk.update(orgID, "accounts", accountID, custUpdate);
-	info update;
-}else{
-	info "no customer to update";
 }
-
