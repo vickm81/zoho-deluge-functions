@@ -1,0 +1,27 @@
+//updates custom subscription fields in crm when a subscription changes 
+// fetching required subscription fields
+subscriptionID = subscriptions.get("subscription_id");
+organizationID = organization.get("organization_id");
+subscription_name = subscriptions.get("name");
+expiry = subscriptions.get("next_billing_at");
+status = subscriptions.get("status_formatted");
+email = subscriptions.get("email");
+//building the account update map
+account_map = Map();
+account_map.put("Subscription_name",subscription_name);
+account_map.put("Expiry_date",expiry);
+account_map.put("Subscription_status",status);
+map = {"Subscription_name":subscription_name,"Expiry_date":expiry,"Subscription_status":status};
+//creating the account if it doesnt exist or updating if it does
+if(!subscriptions.get("customer").get("zcrm_account_id"))
+{
+	account_name = subscriptions.get("customer").get("display_name");
+	account_map.put("Account_name",account_name);
+	create = zoho.crm.createRecord("accounts",account_map,"zohocrm");
+	info create;
+}
+else
+{
+	customer_id = subscriptions.get("customer").get("zcrm_account_id");
+	update = zoho.crm.updateRecord("accounts",customer_id,account_map,"zohocrm");
+}
